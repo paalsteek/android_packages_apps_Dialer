@@ -33,6 +33,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.contacts.common.util.StopWatch;
+// Engle, 添加T9
+import com.android.dialer.dialpad.util.*;
+import com.android.dialer.R;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -56,18 +59,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  * immediately
  */
 public class SmartDialCache {
+    // Engle, 添加T9
+    private static NameLatinizer mNormalizer;
 
     public static class ContactNumber {
         public final String displayName;
         public final String lookupKey;
+        public final String latinizedName;
         public final long id;
         public final int affinity;
         public final String phoneNumber;
 
         public ContactNumber(long id, String displayName, String phoneNumber, String lookupKey,
-                int affinity) {
+                String latinizedName, int affinity) {
             this.displayName = displayName;
             this.lookupKey = lookupKey;
+            this.latinizedName = latinizedName;
             this.id = id;
             this.affinity = affinity;
             this.phoneNumber = phoneNumber;
@@ -204,8 +211,26 @@ public class SmartDialCache {
     public static synchronized SmartDialCache getInstance(Context context, int nameDisplayOrder) {
         if (instance == null) {
             instance = new SmartDialCache(context, nameDisplayOrder);
+            // Engle, 添加T9
+            initNormalizer(context);
         }
         return instance;
+    }
+
+    // Engle, 添加T9
+    private static void initNormalizer(Context context) {
+        StringBuilder t9Chars = new StringBuilder();
+        StringBuilder t9Digits = new StringBuilder();
+
+        for (String item : context.getResources().getStringArray(R.array.t9_map)) {
+            t9Chars.append(item);
+            for (int i = 0; i < item.length(); i++) {
+                t9Digits.append(item.charAt(0));
+            }
+        }
+
+        mNormalizer = NameToNumberFactory.create(context,
+                t9Chars.toString(), t9Digits.toString());
     }
 
     /**
@@ -246,7 +271,18 @@ public class SmartDialCache {
                     final String phoneNumber = c.getString(PhoneQuery.PHONE_NUMBER);
                     final long id = c.getLong(PhoneQuery.PHONE_CONTACT_ID);
                     final String lookupKey = c.getString(PhoneQuery.PHONE_LOOKUP_KEY);
-                    cache.put(new ContactNumber(id, displayName, phoneNumber, lookupKey,
+                    // Engle, 添加T9, 开始
+                    if (mNormalizer != null) {
+                        String T9Names[] = mNormalizer.getNameLatinizations(displayName);
+                        for (String T9Name : T9Names) {
+                            cache.put(new ContactNumber(id, displayName, phoneNumber, lookupKey,
+                                    T9Name, affinityCount));
+                            affinityCount++;
+                        }
+                    }
+                    // Engle, 添加T9, 结束
+
+                    cache.put(new ContactNumber(id, displayName, phoneNumber, lookupKey, null,
                             affinityCount));
                     affinityCount++;
                 }

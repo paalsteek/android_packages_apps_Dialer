@@ -50,4 +50,7 @@
     <string name="call_stats_sort_by_count">以通话次数排序</string>
     <string name="menu_add_to_blacklist">添加到黑名单</string>
     <string name="toast_added_to_blacklist">%s 已添加到黑名单.</string>
+
+    <!-- Engle, 添加拨打IP电话图标 -->
+    <string name="description_ip_dial_button">拨打 IP 电话</string>
 </resources>

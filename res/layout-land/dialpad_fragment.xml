@@ -74,7 +74,7 @@
     <View
        android:layout_width="@dimen/dialpad_center_margin"
        android:layout_height="match_parent"
-       android:background="@color/dialpad_switch_bg"/>
+       android:background="#66000000"/>
     <RelativeLayout
         android:id="@+id/dialButtonContainer"
         android:layout_width="0dp"
@@ -85,7 +85,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/dialpad_button_margin"
             android:layout_above="@id/dialButton"
-            android:background="@color/dial_button_background" />
+            android:background="#33000000" />
         <ImageButton android:id="@+id/dialButton"
             android:layout_width="match_parent"
             android:layout_height="@dimen/call_button_height"
@@ -94,5 +94,22 @@
             android:background="@drawable/btn_call"
             android:contentDescription="@string/description_dial_button"
             android:src="@drawable/ic_dial_action_call" />
+
+            <!-- Engle, 添加拨打IP电话图标 -->
+            <View android:id="@+id/dialButtonsDivider"
+                    android:layout_width="1dip"
+                    android:layout_height="24dip"
+                    android:layout_gravity="center_vertical"
+                    android:background="?android:attr/dividerVertical" />
+
+            <ImageButton
+                android:id="@+id/ipDialButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/call_button_height"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/btn_call"
+                android:contentDescription="@string/description_ip_dial_button"
+                android:src="@drawable/ic_dial_action_ip_call"
+                android:state_enabled="false" />
     </RelativeLayout>
 </LinearLayout>

@@ -361,6 +361,12 @@ public class SmartDialController {
                     if (p.end > displayName.length()) {
                         p.end = displayName.length();
                     }
+
+                    // Engle, 添加T9, 开始
+                    if (p.start > displayName.length()) {
+                        p.start = 0;
+                    }
+                    // Engle, 添加T9, 结束
                     // Create a new ForegroundColorSpan for each section of the name to highlight,
                     // otherwise multiple highlights won't work.
                     displayName.setSpan(new ForegroundColorSpan(mNameHighlightedTextColor), p.start,

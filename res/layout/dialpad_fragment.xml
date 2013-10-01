@@ -87,25 +87,43 @@
     <View style="@style/DialpadHorizontalSeparator"/>
 
     <!-- left and right paddings will be modified by the code. See DialpadFragment. -->
-    <FrameLayout
+    <!-- Engle, 添加拨打IP电话图标 -->
+    <LinearLayout
         android:id="@+id/dialButtonContainer"
         android:layout_width="match_parent"
         android:layout_height="0px"
         android:layout_weight="@integer/dialpad_layout_weight_additional_buttons"
         android:layout_gravity="center_horizontal"
-        android:background="@drawable/dialpad_background">
+        android:background="@drawable/dialpad_background"
+        android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/dialButton"
+            android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:layout_gravity="center_vertical"
             android:state_enabled="false"
             android:background="@drawable/btn_call"
             android:contentDescription="@string/description_dial_button"
             android:src="@drawable/ic_dial_action_call" />
 
-    </FrameLayout>
+        <View android:id="@+id/dialButtonsDivider"
+            android:layout_width="1dip"
+            android:layout_height="24dip"
+            android:layout_gravity="center_vertical"
+            android:background="?android:attr/dividerVertical" />
+        <ImageButton
+            android:id="@+id/ipDialButton"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/btn_call"
+            android:contentDescription="@string/description_ip_dial_button"
+            android:src="@drawable/ic_dial_action_ip_call"
+            android:state_enabled="false" />
+    </LinearLayout>
 
     <!-- "Dialpad chooser" UI, shown only when the user brings up the
          Dialer while a call is already in progress.

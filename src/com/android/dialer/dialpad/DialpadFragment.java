@@ -145,6 +145,12 @@ public class DialpadFragment extends Fragment
 
     private View mDialButtonContainer;
     private View mDialButton;
+
+   // Engle, 添加拨打IP电话图标
+   private View mIpDialButton;
+   private View mDialButtonsDivider;
+   private boolean mUseIPDial;
+
     private ListView mDialpadChooser;
     private DialpadChooserAdapter mDialpadChooserAdapter;
 
@@ -349,6 +355,13 @@ public class DialpadFragment extends Fragment
             mDialButton = null;
         }
 
+        // Engle, 添加拨打IP电话图标
+        mIpDialButton = fragmentView.findViewById(R.id.ipDialButton);
+        mIpDialButton.setOnClickListener(this);
+        mIpDialButton.setOnLongClickListener(this);
+        mDialButtonsDivider = fragmentView.findViewById(R.id.dialButtonsDivider);
+        changeIpDialButtonStatus();
+
         mDelete = fragmentView.findViewById(R.id.deleteButton);
         if (mDelete != null) {
             mDelete.setOnClickListener(this);
@@ -540,6 +553,9 @@ public class DialpadFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
+
+        //Engle, 添加IP电话 
+        changeIpDialButtonStatus();
 
         final StopWatch stopWatch = StopWatch.start("Dialpad.onResume");
 
@@ -800,7 +816,11 @@ public class DialpadFragment extends Fragment
         switch (view.getId()) {
             case R.id.digits:
                 if (keyCode == KeyEvent.KEYCODE_ENTER) {
-                    dialButtonPressed();
+                    // Engle, 添加拨打IP电话图标
+                    dialButtonPressed(Settings.System.getInt(this
+                            .getActivity()
+                            .getContentResolver(),
+                            Settings.System.PHONE_CALL_WITH_IP_NUMBER, 0) == 1);
                     return true;
                 }
                 break;
@@ -900,7 +920,13 @@ public class DialpadFragment extends Fragment
             }
             case R.id.dialButton: {
                 mHaptic.vibrate();  // Vibrate here too, just like we do for the regular keys
-                dialButtonPressed();
+                dialButtonPressed(false);
+                return;
+            }
+            // Engle, 添加拨打IP电话图标
+            case R.id.ipDialButton: {
+                mHaptic.vibrate();  // Vibrate here too, just like we do for the regular keys
+                dialButtonPressed(true);
                 return;
             }
             case R.id.digits: {
@@ -993,6 +1019,8 @@ public class DialpadFragment extends Fragment
                 mDigits.setCursorVisible(true);
                 return false;
             }
+            // Engle, 添加拨打IP电话图标
+            case R.id.ipDialButton: 
             case R.id.dialButton: {
                 if (isDigitsEmpty()) {
                     handleDialButtonClickWithEmptyDigits();
@@ -1092,7 +1120,7 @@ public class DialpadFragment extends Fragment
      * user needs to press the dial button again, to dial it (general
      * case described above).
      */
-    public void dialButtonPressed() {
+    public void dialButtonPressed(boolean useIpDial) {
         if (isDigitsEmpty()) { // No number entered.
             handleDialButtonClickWithEmptyDigits();
         } else {
@@ -1118,6 +1146,7 @@ public class DialpadFragment extends Fragment
                 final Intent intent = CallUtil.getCallIntent(number,
                         (getActivity() instanceof DialtactsActivity ?
                                 ((DialtactsActivity) getActivity()).getCallOrigin() : null));
+                intent.putExtra("ignoreUseIPDial", (useIpDial == false));
                 startActivity(intent);
                 mClearDigitsOnStop = true;
                 getActivity().finish();
@@ -1574,6 +1603,32 @@ public class DialpadFragment extends Fragment
                         !TextUtils.isEmpty(mLastNumberDialed));
             }
         }
+
+        // Engle, 添加拨打IP电话图标
+        if (mUseIPDial) {
+            // On CDMA phones, if we're already on a call, we *always*
+            // enable the Dial button (since you can press it without
+            // entering any digits to send an empty flash.)
+            boolean useIpDial = false;
+            Activity activity = getActivity();
+            if (activity != null) {
+                useIpDial = (!TextUtils.isEmpty(Settings.System.getString(
+                        activity.getContentResolver(),
+                        Settings.System.PHONE_IP_NUMBER)));
+            }
+
+            if (phoneIsCdma() && phoneIsOffhook() && useIpDial) {
+                mIpDialButton.setEnabled(true);
+            } else {
+                // Common case: GSM, or CDMA but not on a call.
+                // Enable the Dial button if some digits have
+                // been entered, or if there is a last dialed number
+                // that could be redialed.
+                mIpDialButton.setEnabled((digitsNotEmpty ||
+                        !TextUtils.isEmpty(mLastNumberDialed)) && useIpDial);
+            }
+        }
+
         mDelete.setEnabled(digitsNotEmpty);
     }
 
@@ -1764,6 +1819,19 @@ public class DialpadFragment extends Fragment
                             ((DialtactsActivity) getActivity()).getCallOrigin() : null));
             startActivity(intent);
             mClearDigitsOnStop = true;
+        }
+    }
+
+    //Engle, 添加IP电话
+    private void changeIpDialButtonStatus() {
+        mUseIPDial = (Settings.System.getInt(getActivity().getContentResolver(),
+                Settings.System.PHONE_CALL_WITH_IP_NUMBER, 0) == 1) ? true : false;
+        if (!mUseIPDial) {
+            mIpDialButton.setVisibility(View.GONE);
+            mDialButtonsDivider.setVisibility(View.GONE);
+        } else {
+            mIpDialButton.setVisibility(View.VISIBLE);
+            mDialButtonsDivider.setVisibility(View.VISIBLE);
         }
     }
 }
